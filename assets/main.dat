@@ -1,0 +1,9 @@
+share_user=0
+share_root=1
+share_user_letter=X
+share_root_letter=R
+share_user_label=Windows Subsystem For Android
+share_root_label=WSA RootFile System
+share_user_prev_letter=X
+share_root_prev_letter=R
+auto_repair=0
