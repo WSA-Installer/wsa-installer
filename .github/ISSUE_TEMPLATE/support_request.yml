@@ -1,0 +1,80 @@
+name: Support Request
+description: Get help with WSA Installer
+title: "[Help]: "
+labels: ["question", "help wanted"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Need help with WSA Installer? Please provide as much detail as possible.
+
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Help Topic
+      options:
+        - Installation issues
+        - Play Store issues
+        - WSA won't start
+        - Background service issues
+        - File sharing (WebDAV)
+        - Repair / Uninstall
+        - Update issues
+        - General usage
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: WSA Installer Version
+      placeholder: "e.g., 1.2.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Windows Version
+      placeholder: "e.g., Windows 11 23H2"
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: Describe what you need help with.
+      placeholder: "I'm trying to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-tried
+    attributes:
+      label: What Have You Tried?
+      description: Describe what you've already attempted.
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs (optional)
+      description: "Paste any relevant log output from `wsa_activity.log` or the UI."
+      render: shell
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots (optional)
+      description: Add screenshots if applicable.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checklist
+      options:
+        - label: I have checked the troubleshooting guide
+          required: true
+        - label: I have searched existing issues for similar questions
+          required: true

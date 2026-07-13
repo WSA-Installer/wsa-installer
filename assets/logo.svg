@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1B72C0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#155A9A;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3DDC84;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2BB568;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Background rounded rectangle (Windows 11 style) -->
+  <rect x="16" y="16" width="480" height="480" rx="64" ry="64" fill="url(#bgGrad)"/>
+  <!-- Package/box shape -->
+  <rect x="108" y="160" width="296" height="240" rx="24" ry="24" fill="none" stroke="white" stroke-width="16" opacity="0.95"/>
+  <!-- Box lid line -->
+  <line x1="108" y1="220" x2="404" y2="220" stroke="white" stroke-width="16" opacity="0.95"/>
+  <!-- Box handle -->
+  <rect x="196" y="140" width="120" height="40" rx="12" ry="12" fill="none" stroke="white" stroke-width="14" opacity="0.95"/>
+  <!-- Android head silhouette (subtle, inside box) -->
+  <circle cx="256" cy="300" r="44" fill="url(#accentGrad)" opacity="0.9"/>
+  <!-- Android antennas -->
+  <line x1="236" y1="258" x2="224" y2="238" stroke="#3DDC84" stroke-width="8" stroke-linecap="round" opacity="0.9"/>
+  <line x1="276" y1="258" x2="288" y2="238" stroke="#3DDC84" stroke-width="8" stroke-linecap="round" opacity="0.9"/>
+  <!-- Android eyes -->
+  <circle cx="240" cy="294" r="6" fill="white"/>
+  <circle cx="272" cy="294" r="6" fill="white"/>
+  <!-- Down arrow (install indicator) -->
+  <path d="M256 360 L256 390 M244 378 L256 390 L268 378" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.8"/>
+  <!-- WSA text -->
+  <text x="256" y="440" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="700" fill="white" text-anchor="middle" opacity="0.95">WSA</text>
+</svg>
