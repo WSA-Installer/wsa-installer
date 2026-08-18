@@ -1,10 +1,6 @@
 <div align="center">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/logo-light.svg">
-  <img alt="WSA Installer" src="assets/logo-light.svg" width="120">
-</picture>
+<img alt="WSA Installer" src="assets/icon.png" width="120">
 
 # WSA Installer
 
@@ -294,6 +290,9 @@ graph TB
     subgraph "Native Security"
         WU[widget_ui.pyd<br/>Rust Gateway]
         PS[playstore_patcher_mem.pyd<br/>Play Store SDK]
+        WI[wsa_init.pyd<br/>WSA Boot/ADB]
+        NP[wsa_net_provider.dll<br/>UNC-to-WebDAV]
+        APK[ApkIconShlExt.dll<br/>APK Icons]
     end
 
     subgraph "System Integration"
@@ -315,10 +314,12 @@ graph TB
     IL --> RCM
     IL --> WU
     IL --> PS
+    IL --> WI
     IL --> ADB
     ADB --> WSA
     PS --> EMB
     SVC --> WSA
+    SVC --> NP
     RCM --> WU
     RCM --> SERVER
     IL --> GH
@@ -361,23 +362,25 @@ flowchart TD
     B -->|No| C[Request Elevation]
     C --> D{Admin?}
     D -->|No| E[Exit]
-    D -->|Yes| F[System Check]
+    D -->|Yes| F[Phase 1: System Check]
     B -->|Yes| F
-    F --> G[Virtualization?]
-    G -->|No| H[Enable Features]
+    F --> G{Virtualization?}
+    G -->|No| H[Virtualization Bypass]
     H --> G
-    G -->|Yes| I[Check Bundle]
+    G -->|Yes| I[Phase 2: Bundle Check]
     I -->|Found| J[Extract Bundle]
     I -->|Not Found| K[Download from GitHub]
     K --> J
-    J --> L[Install WSA]
-    L --> M{Play Store?}
-    M -->|Yes| N[7-Phase Play Store]
-    M -->|No| O[Complete]
-    N --> O
-    O --> P[Create Shortcuts]
-    P --> Q[Start Service]
-    Q --> R[Done]
+    J --> L[Phase 3: Apply Fixes]
+    L --> M[Install WSA]
+    M --> N{Play Store?}
+    N -->|Yes| O[7-Phase Play Store]
+    N -->|No| P[Complete]
+    O --> P
+    P --> Q[Create Shortcuts]
+    Q --> R[Start Service]
+    R --> S[Register APK Handler]
+    S --> T[Done]
 ```
 
 ---
@@ -392,12 +395,17 @@ flowchart TD
 | `--uninstall-service` | Remove WSABackgroundService |
 | `--bg-service` | Run as background service (SYSTEM context) |
 | `--bg-service-gui` | Background service with visible console |
+| `--headless` | Run background service in headless mode |
 | `--uninstall` | Launch uninstall dialog |
 | `--update <url> <ver>` | Self-update dialog |
 | `--repair-wsa` | 4-step WSA repair (detect → stop → backup → reinstall) |
 | `--file-sharing` | File sharing (WebDAV mount) dialog |
 | `--ad <url> <secs>` | Spawn ad overlay |
 | `--sdk` | Start Play Store patcher SDK |
+| `--flet-patch` | Patch flet.exe with custom icon and version |
+| `--register-apk` | Register WSA APK handler in Windows Registry |
+| `--unregister-apk` | Unregister WSA APK handler from Windows Registry |
+| `--wsa-pacman <path>` | Install APK/XAPK/APKS/APKM into WSA from given path |
 
 ### Silent Installation
 
@@ -598,6 +606,9 @@ Uses Nuitka standalone mode with C# launcher compilation.
 |:-------|:---------|:--------|
 | `widget_ui.pyd` | Rust | Zero-trust security gateway |
 | `playstore_patcher_mem.pyd` | Rust | Play Store patcher SDK |
+| `wsa_init.pyd` | Rust | WSA boot, ADB connect, WebDAV start |
+| `wsa_net_provider.dll` | Rust | UNC-to-WebDAV network provider |
+| `ApkIconShlExt.dll` | C++ | Per-file APK icons in Explorer |
 
 ---
 
@@ -614,6 +625,12 @@ Uses Nuitka standalone mode with C# launcher compilation.
 - [x] Glass transparency UI
 - [x] Remote configuration
 - [x] NSIS professional installer
+- [x] WSA Pacman (double-click APK installer)
+- [x] APK File Handler (Windows Explorer integration)
+- [x] 3-Phase System Check
+- [x] Virtualization Bypass (6 auto-fixes)
+- [x] Win10/Win11 detection
+- [x] 30-chunk parallel download
 
 ### Planned
 
