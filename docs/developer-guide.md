@@ -50,7 +50,7 @@ python run.py
 
 ```
 wsa-installer/
-├── app.py                    # Main application (~11K lines)
+├── app.py                    # Main application (~12.6K lines)
 ├── run.py                    # Entry point: import app; app.start()
 ├── WSARepair.py              # Windows Settings proxy
 ├── patch_flet.py             # Flet client patcher
@@ -61,13 +61,18 @@ wsa-installer/
 │   ├── AppxManifest.xml      # WSA manifest
 │   ├── Run.bat               # MagiskOnWSALocal launcher
 │   ├── settings.dat          # Pre-patched WSA settings
-│   └── icons/                # Application icons
+│   ├── ApkIconShlExt.dll     # C++ APK icon shell extension
+│   ├── wsa-webdav.apk        # WebDAV server APK
+│   └── icon.ico              # Application icon
 │
 ├── native/                   # Rust native modules
 │   ├── widget_ui.pyd         # Security gateway
 │   └── playstore_patcher_mem.pyd  # Play Store SDK
 │
+├── net_provider/             # Rust network provider + WSA init
+├── shell_ext/                # C++ APK shell extension
 ├── emb_py/                   # Embedded Python 3.14
+├── scripts/                  # Build/utility scripts
 ├── build/                    # Build scripts
 ├── docs/                     # Documentation
 └── tests/                    # Tests
@@ -79,12 +84,15 @@ wsa-installer/
 
 The main application file containing:
 
-- **Flet GUI** (lines 6936-9044) — User interface
-- **InstallerLogic** (lines 2431-5995) — Core engine
-- **ConfigController** (lines 1603-2036) — Configuration management
-- **RemoteConfigManager** (lines 2154-2286) — Server sync
-- **Background Service** (lines 777-1598) — Windows SCM service
-- **Dialog Functions** (lines 9052-10993) — Uninstall, update, repair, file sharing
+- **Flet GUI** — User interface with 5-step wizard and 3-phase system check
+- **InstallerLogic** — Core engine with 30-chunk parallel downloads
+- **WSA Pacman** — Double-click APK installer (`wsa_pacman_install_app`)
+- **APK Handler** — Windows Registry file association (`_register_apk_handler`)
+- **ConfigController** — Configuration management with source tracking
+- **RemoteConfigManager** — Server sync with hash deduplication
+- **Background Service** — Windows SCM service with WSA monitoring
+- **Virtualization Bypass** — System-level compatibility fixes
+- **Dialog Functions** — Uninstall, update, repair, file sharing
 
 ### run.py
 

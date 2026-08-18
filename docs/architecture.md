@@ -7,43 +7,47 @@ This document describes the technical architecture of WSA Installer.
 WSA Installer is a Python-based application with Rust native modules, designed to automate WSA installation and management on Windows.
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                     WSA Installer v1.2.0                      │
-├──────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌─────────────┐    ┌──────────────────┐    ┌────────────┐  │
-│  │  Flet GUI   │    │  InstallerLogic   │    │  Remote    │  │
-│  │  (UI Layer) │◄──►│  (Core Engine)    │◄──►│  Config    │  │
-│  └──────┬──────┘    └────────┬─────────┘    └────────────┘  │
-│         │                    │                               │
-│         ▼                    ▼                               │
-│  ┌─────────────┐    ┌──────────────────┐                    │
-│  │  5-Step     │    │  Rust Native     │                    │
-│  │  Wizard     │    │  Modules (.pyd)  │                    │
-│  │  Pages      │    └──────────────────┘                    │
-│  └─────────────┘            │                               │
-│                             ▼                               │
-│  ┌─────────────┐    ┌──────────────────┐    ┌────────────┐  │
-│  │  Embedded   │    │  Windows Service │    │  NSIS      │  │
-│  │  Python 3.14│    │  (Background)    │    │  Installer │  │
-│  └─────────────┘    └──────────────────┘    └────────────┘  │
-│                                                              │
-└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                   WSA Installer v1.2.0 (Download Edition)        │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌─────────────┐    ┌──────────────────┐    ┌────────────┐      │
+│  │  Flet GUI   │    │  InstallerLogic   │    │  Remote    │      │
+│  │  (UI Layer) │◄──►│  (Core Engine)    │◄──►│  Config    │      │
+│  └──────┬──────┘    └────────┬─────────┘    └────────────┘      │
+│         │                    │                                   │
+│         ▼                    ▼                                   │
+│  ┌─────────────┐    ┌──────────────────┐                        │
+│  │  5-Step     │    │  Rust Native     │    ┌────────────────┐  │
+│  │  Wizard     │    │  Modules (.pyd)  │    │  WSA Pacman    │  │
+│  │  + 3-Phase  │    └──────────────────┘    │  (APK Install) │  │
+│  └─────────────┘            │               └────────────────┘  │
+│                             ▼                                   │
+│  ┌─────────────┐    ┌──────────────────┐    ┌────────────┐      │
+│  │  Embedded   │    │  Windows Service │    │  NSIS      │      │
+│  │  Python 3.14│    │  (Background)    │    │  Installer │      │
+│  └─────────────┘    └──────────────────┘    └────────────┘      │
+│                                                                  │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │  APK Handler (ApkIconShlExt.dll) — Double-click Install │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ## Core Components
 
 ### 1. Flet GUI (UI Layer)
 
-**File:** `app.py` — `main()` function (lines 6936-9044)
+**File:** `app.py` — `main()` function
 
 The GUI is built with Flet, a cross-platform UI framework. It provides:
 
-- 5-step wizard interface
+- 5-step wizard interface with 3-phase system check
 - Sidebar navigation
 - Glass transparency (configurable alpha)
 - Animated transitions
-- Overlay dialogs
+- Overlay dialogs (download, restart, force-extract)
 
 **Key Elements:**
 - `ft.Stack` — Root container with overlays
@@ -54,25 +58,56 @@ The GUI is built with Flet, a cross-platform UI framework. It provides:
 
 ### 2. InstallerLogic (Core Engine)
 
-**File:** `app.py` — `InstallerLogic` class (lines 2431-5995)
+**File:** `app.py` — `InstallerLogic` class
 
 The core engine handles all installation operations:
 
 **Methods:**
-- `download_asset()` — Parallel chunked download with resume
+- `_run_system_check()` — Phase 1: Windows version, virtualization, features
+- `_run_bundle_check()` — Phase 2: Bundle detection, cache check, extraction
+- `_apply_system_fixes()` — Phase 3: Virtualization bypass, registry fixes
+- `download_asset()` — 30-chunk parallel download with resume
 - `extract_7z()` — 7z archive extraction
 - `install_wsa()` — 6-phase WSA installation
 - `add_playStore()` — 7-phase Play Store integration
 - `uninstall_wsa_logic()` — Complete WSA removal
 - `_adb_connect_loop()` — ADB connection management
 - `_automate_adb_authorization()` — UI automation for ADB popup
+- `virtualization_bypass_for_wsa()` — System-level compatibility fixes
 
 **State Dictionary:**
 Contains 40+ keys tracking wizard state, progress, and UI updates.
 
-### 3. ConfigController
+### 3. WSA Pacman (APK Installer)
 
-**File:** `app.py` — `ConfigController` class (lines 1603-2036)
+**File:** `app.py` — `wsa_pacman_install_app()` function
+
+Double-click APK installer for WSA:
+
+**Flow:**
+1. Parse APK metadata (name, package, version, icon, size)
+2. Check WSA installed and running
+3. Connect ADB (15 attempts)
+4. Detect install/update/downgrade/reinstall
+5. Install via `adb install` or `adb install-multiple`
+6. Create desktop shortcut with watermarked icon
+
+**Supported formats:** `.apk`, `.xapk`, `.apks`, `.apkm`, `.aab`
+
+### 4. APK File Handler
+
+**File:** `app.py` — `_register_apk_handler()` / `_unregister_apk_handler()`
+
+Windows Registry-based file association:
+
+- Registers ProgIDs for 5 APK formats
+- Sets open command: `app.py --wsa-pacman "%1"`
+- Registers `ApkIconShlExt.dll` for per-file icons in Explorer
+- Auto-registers on normal app startup
+
+### 5. ConfigController
+
+**File:** `app.py` — `ConfigController` class
 
 Manages application configuration with source tracking:
 
@@ -81,13 +116,14 @@ Default Config → Dev Mode Config → Server Config
 ```
 
 **Features:**
-- Source-tracked values
+- Source-tracked values (knows where each config value came from)
 - Validation against allowed types/values
 - Server-side updates via RemoteConfigManager
+- Hash-based deduplication
 
-### 4. RemoteConfigManager
+### 6. RemoteConfigManager
 
-**File:** `app.py` — `RemoteConfigManager` class (lines 2154-2286)
+**File:** `app.py` — `RemoteConfigManager` class
 
 Fetches and applies remote configuration:
 
@@ -95,26 +131,32 @@ Fetches and applies remote configuration:
 1. Polls server JSON via `widget_ui.pyd`
 2. Validates signature via Rust gateway
 3. Applies configuration changes
-4. Hash-based deduplication
+4. Hash-based deduplication (skips unchanged configs)
+5. Quick retry on failure (5s interval)
 
-### 5. Background Service
+### 7. Background Service
 
-**File:** `app.py` — `WSABackgroundService` (lines 777-1598)
+**File:** `app.py` — `_run_bg_service_full()` function
 
 Windows Service running in SYSTEM context:
 
 **Capabilities:**
-- WSA port monitoring (58526)
-- SDK lifecycle management
-- User session process spawning via `CreateProcessAsUserW`
-- Auto-restart on failure
+- WSA port monitoring (58526) — 1-second polling
+- SDK lifecycle management via `CreateProcessAsUserW`
+- File sharing auto-mount/unmount on WSA state change
+- Remote config sync with hash dedup
+- Auto-update check and dialog launch
+- Single-instance lock (port 65433)
 
-### 6. Native Modules
+### 8. Native Modules
 
 | Module | Language | Purpose |
 |:-------|:---------|:--------|
 | `widget_ui.pyd` | Rust | Zero-trust config gateway |
 | `playstore_patcher_mem.pyd` | Rust | Play Store patcher SDK |
+| `wsa_init.pyd` | Rust | WSA boot, ADB connect, WebDAV start |
+| `wsa_net_provider.dll` | Rust | UNC-to-WebDAV network provider |
+| `ApkIconShlExt.dll` | C++ | Per-file APK icons in Explorer |
 
 ## Security Architecture
 
@@ -228,7 +270,7 @@ sequenceDiagram
 
 ```
 wsa-installer/
-├── app.py                    # Main application (~11K lines)
+├── app.py                    # Main application (~12.6K lines)
 ├── run.py                    # Entry point
 ├── WSARepair.py              # Windows Settings proxy
 ├── patch_flet.py             # Flet client patcher
@@ -239,17 +281,37 @@ wsa-installer/
 │   ├── AppxManifest.xml      # WSA manifest
 │   ├── Run.bat               # MagiskOnWSALocal launcher
 │   ├── settings.dat          # Pre-patched WSA settings
-│   ├── WsaClient.exe         # Patched WSA client
-│   └── icons/                # Application icons
+│   ├── WsaClient.exe         # Patched WSA client (crash fix)
+│   ├── ApkIconShlExt.dll     # C++ APK icon shell extension
+│   ├── wsa-webdav.apk        # WebDAV server APK
+│   ├── icon.ico              # Application icon
+│   ├── ps.ico                # Play Store icon
+│   └── aap++/                # Android APK analysis tools
 │
 ├── native/                   # Rust native modules
 │   ├── widget_ui.pyd         # Security gateway
 │   └── playstore_patcher_mem.pyd  # Play Store SDK
 │
+├── net_provider/             # Rust network provider
+│   ├── src/lib.rs            # UNC-to-WebDAV translation
+│   ├── wsa_init.py           # WSA boot script
+│   └── Cargo.toml            # Rust project config
+│
+├── shell_ext/                # C++ APK shell extension
+│   ├── ApkIconShlExt.cpp     # Per-file APK icons
+│   └── build_shell_ext.bat   # Build script
+│
 ├── emb_py/                   # Embedded Python 3.14
 │   ├── python/               # CPython runtime
+│   ├── widget_ui.pyd         # Security gateway
+│   ├── ads_sdk.pyd           # Ads SDK
 │   ├── PySide6/              # Qt6 bindings
 │   └── requests/             # HTTP client
+│
+├── scripts/                  # Build/utility scripts
+│   ├── compress_internal.py  # Ultra-7z compression
+│   ├── bundle_info.md        # Bundle documentation
+│   └── download_bundle_gui.ps1  # GUI bundle downloader
 │
 ├── build/                    # Build scripts
 │   ├── build.bat             # Primary build
@@ -257,6 +319,17 @@ wsa-installer/
 │   └── WSA_Installer_Setup.nsi  # NSIS script
 │
 ├── docs/                     # Documentation
+│   ├── flow.md               # Complete user flow guide
+│   ├── installer.md          # Full feature documentation
+│   ├── architecture.md       # This file
+│   ├── cli-reference.md      # CLI arguments
+│   ├── installation.md       # Installation guide
+│   ├── webdav.md             # File sharing guide
+│   ├── troubleshooting.md    # Common issues
+│   ├── developer-guide.md    # Contributing guide
+│   ├── adb.md                # ADB reference
+│   └── repair.md             # Repair guide
+│
 └── tests/                    # Tests
 ```
 

@@ -61,11 +61,15 @@ Installing WSA manually involves downloading large archives, extracting them wit
 |:-----------|:------------|
 | **System Detection** | Automatically scans your system for VT-x/AMD-V virtualization, Hyper-V, VirtualMachinePlatform, HypervisorPlatform, and WSL support |
 | **Feature Enabling** | Enables all required Windows features automatically with administrator privileges |
-| **WSA Download** | Downloads the correct WSA build from GitHub Releases with parallel chunked downloads and resume support |
+| **Virtualization Bypass** | Auto-fixes compatibility issues: Hyper-V, problematic KBs, WSL2, Defender exclusion, VBS, FsDepends |
+| **WSA Download** | Downloads the correct WSA build from GitHub Releases with 30-chunk parallel downloads and resume support |
 | **WSA Installation** | Extracts, configures, and registers the Android subsystem with proper Developer Mode settings |
 | **Play Store Integration** | Patches Google Apps (MindTheGapps 13.0) onto the WSA installation with automated ADB authorization |
 | **WSAPatch Fix** | Applies binary patches to `WsaClient.exe` for Windows 10 compatibility (crash fix) |
-| **Background Service** | Installs `WSABackgroundService` — a Windows Service that monitors WSA status and manages the Play Store SDK |
+| **WSA Pacman** | Double-click any APK/XAPK/APKS/APKM to install directly into WSA with desktop shortcut creation |
+| **APK File Handler** | Registers as Windows handler for APK files with custom icons in Explorer |
+| **Background Service** | Installs `WSABackgroundService` — monitors WSA status, manages file sharing, handles auto-updates |
+| **File Sharing** | WebDAV-based drive mounting for WSA user/root filesystems |
 | **Self-Update** | Checks the server for updates and installs them silently without user intervention |
 | **Uninstall** | Provides complete WSA removal including services, files, and registry entries |
 
@@ -84,14 +88,19 @@ Installing WSA manually involves downloading large archives, extracting them wit
 
 | Feature | Description |
 |:--------|:------------|
+| 3-Phase System Check | System validation → Bundle detection → Virtualization bypass |
 | Smart System Scan | Detects VT-x, Hyper-V, VirtualMachinePlatform, HypervisorPlatform, WSL in real-time |
 | Auto Configuration | Enables required Windows features automatically with admin privileges |
 | One-Click Install | Handles download, extraction, and setup end-to-end |
 | Play Store Patching | Applies Run.bat, WsaClient.exe, ps.ico patches automatically via Rust SDK |
 | WSAPatch Fix | Binary patches WsaClient.exe for compatibility on Windows 10 |
+| WSA Pacman | Double-click any APK to install directly into WSA (APK/XAPK/APKS/APKM) |
+| APK File Handler | Registers as Windows handler for APK files with custom icons |
+| Virtualization Bypass | Auto-fixes Hyper-V, KB uninstall, WSL2, Defender, VBS, FsDepends |
 | Background Service | `WSABackgroundService` monitors WSA status and manages the SDK |
 | Self-Update | Checks server for updates and installs silently |
 | Developer Mode | Enabled automatically for advanced usage and ADB access |
+| Win10/Win11 Detection | Uses appropriate GitHub API source per Windows version |
 
 ### Installer Features
 
@@ -110,9 +119,10 @@ Installing WSA manually involves downloading large archives, extracting them wit
 |:--------|:------------|
 | Flet-Based GUI | Modern cross-platform UI framework |
 | Glass Transparency | Alpha-blended window transparency (configurable 0-100) |
-| 5-Step Wizard | Guided installation flow: Intro → Check → Install → Play Store → Complete |
+| 5-Step Wizard | Guided installation flow with 3-phase pre-check |
 | Real-Time Progress | Live download progress with speed and ETA |
 | Remote Config | Server-side configuration updates without app changes |
+| APK Install Dialog | 6-step progress tracker for APK installation |
 
 ### Developer Features
 
