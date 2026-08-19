@@ -1,0 +1,17 @@
+[package]
+name = "aaptpp-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "Command-line interface for AAPT++"
+
+[[bin]]
+name = "aaptpp"
+path = "src/main.rs"
+
+[dependencies]
+aaptpp-core = { path = "../aaptpp-core" }
+serde_json.workspace = true
+clap = { version = "4", features = ["derive"] }
+rustyline = "15"

@@ -1,0 +1,14 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\CLSID\{9F3A6E21-75C1-4b7e-8E2C-4E2F8D9A45C7}]
+@="WSA Installer APK Icon Handler"
+
+[HKEY_CLASSES_ROOT\CLSID\{9F3A6E21-75C1-4b7e-8E2C-4E2F8D9A45C7}\InprocServer32]
+@="D:\\myproject\\wsa_installer_download\\assets\\ApkIconShlExt.dll"
+"ThreadingModel"="Both"
+
+[HKEY_CLASSES_ROOT\.apk\shellex\IconHandler]
+@="{9F3A6E21-75C1-4b7e-8E2C-4E2F8D9A45C7}"
+
+[HKEY_CLASSES_ROOT\.apk\shellex\{E357FCCD-A995-4576-B01F-234630154E96}]
+@="{9F3A6E21-75C1-4b7e-8E2C-4E2F8D9A45C7}"
